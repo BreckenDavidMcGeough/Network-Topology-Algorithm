@@ -38,23 +38,6 @@ class Solution:
 
         return paths
 
-    def test(self,output):
-        paths = {}
-        clients = self.info["list_clients"]
-        for i in clients:
-            if self.info["alphas"][i] > 1 and len(output[i]) > 2:
-                arr = output[i]
-                toremove = arr[len(arr)-2]
-                self.graph[i].remove(toremove)
-                self.graph[toremove].remove(i)
-                new = self.bfs(self.graph,self.isp,i)
-                self.graph[i].append(toremove)
-                self.graph[toremove].append(i)
-                paths[i] = new[i]
-            else:
-                paths[i] = output[i]
-        return paths 
-
     def Dprime(self,n,bfs_paths):
         d_n = bfs_paths[n]
         toremove = d_n[len(d_n)-2] #get the 2nd to last element of the shortest path d(n) 
@@ -75,27 +58,61 @@ class Solution:
         return sets
 
     def newpaths(self,bfs_paths):
+        explored = []
         new = {}
-
+        rho1 = self.info["rho1"]
+        rho2 = self.info["rho2"]
+        cb = self.info["cost_bandwidth"]
+        print(rho1)
+        print(rho2)
+        print(cb)
         for client in bfs_paths:
             subsets = self.subsets(client,bfs_paths[client],bfs_paths)
-            if len(subsets) > 1:
+            if len(subsets) > 1 and client not in explored:
                 payments = [self.info["payments"][c] for c in subsets]
                 alphas = [self.info["alphas"][x] for x in subsets]
-                betas = [self.info["bandwidths"][y] for y in subsets]
+                bandwidths = [self.info["bandwidths"][y] for y in subsets]
+
                 mpay = min(payments)
                 mapay = max(payments)
                 malphas = max(alphas)
-                mbetas = max(betas)
+                minalphas = min(alphas)
+                mbetas = max(bandwidths)
+                minbetas = min(bandwidths)
                 dc = bfs_paths[client]
-                if self.info["alphas"][client] > malphas:
-                    new[client] = self.Dprime(client,bfs_paths)[client]
+                if self.info["bandwidths"][client] < len(subsets):
+                    if self.info["alphas"][client] > malphas or mpay > self.info["payments"][client]:
+                        new[client] = self.Dprime(client,bfs_paths)[client]
+                    else:
+                        if mapay <= self.info["payments"][client] and self.info["alphas"][client] <= 2:
+                            new[client] = dc
+                            #new[client] = self.Dprime(client,bfs_paths)[client]
+                        else:
+                            for i in range(self.info["bandwidths"][client], len(subsets)+1):
+                                self.info["bandwidths"][client] += 1
+                            new[client] = dc
                 else:
-                    new[client] = dc 
+                    if self.info["alphas"][client] > malphas:
+                        new[client] = self.Dprime(client,bfs_paths)[client]
+                     
+                        #new[client] = dc
+                    else:
+                        #new[client] = dc 
+                        new[client] = self.Dprime(client,bfs_paths)[client]
+                        
+
+
             else:
-                new[client] = dc
+                if client not in explored:
+                    new[client] = bfs_paths[client]
+                #new[client] = self.Dprime(client,bfs_paths)[client]
+
+            #for s in subsets:
+                #explored.append(s)
+                
 
         return new
+
 
     def output_paths(self):
         """
@@ -106,22 +123,13 @@ class Solution:
         output = bfs_path(self.graph,self.isp,self.info["list_clients"])
         
         k = self.newpaths(output)
-        paths, bandwidths, priorities = k, {} , {}
+        paths, bandwidths, priorities = k, self.info["bandwidths"] , {}
 
-        p = packets[6]
-        y = self.info["alphas"][p]
-        a = self.Dprime(p,output)
-        if len(a) > 1 and y > 1:
-            print(a)
-        else:
-            print(a)
-            print(y)
 
 
         # Note: You do not need to modify all of the above. For Problem 1, only the paths variable needs to be modified. If you do modify a variable you are not supposed to, you might notice different revenues outputted by the Driver locally since the autograder will ignore the variables not relevant for the problem.
         # WARNING: DO NOT MODIFY THE LINE BELOW, OR BAD THINGS WILL HAPPEN
         return (paths, bandwidths, priorities)
-
 
 
 
