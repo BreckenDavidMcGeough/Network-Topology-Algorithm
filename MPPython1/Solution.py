@@ -1,3 +1,4 @@
+
 from Traversals import bfs_path
 import heapq
 from collections import deque
@@ -37,6 +38,27 @@ class Solution:
         paths[end] = path 
 
         return paths
+
+    def alterantepath(self,n,currentpath):
+        toremove = currentpath[len(currentpath)-2]
+        self.graph[n].remove(toremove)
+        self.graph[toremove].remove(n)
+        new_path = self.bfs(self.graph,self.isp,n)
+        self.graph[n].append(toremove)
+        self.graph[toremove].append(n)
+        return new_path
+
+    def allpathsN(self,node):
+        start = self.bfs(self.graph,self.isp,node)
+        start = start[node]
+        newpaths = [start]
+        for i in range(10):
+            newp = self.alterantepath(node,start)
+            if newp[node] not in newpaths:
+                newpaths.append(newp[node])
+                start = newp[node]
+
+        return newpaths
 
     def Dprime(self,n,bfs_paths):
         d_n = bfs_paths[n]
@@ -88,8 +110,10 @@ class Solution:
                             new[client] = dc
                             #new[client] = self.Dprime(client,bfs_paths)[client]
                         else:
+                            scopy = []
                             for i in range(self.info["bandwidths"][client], len(subsets)+1):
                                 self.info["bandwidths"][client] += 1
+                            #self.info["bandwidths"][client] += 75
                             new[client] = dc
                 else:
                     if self.info["alphas"][client] > malphas:
@@ -121,7 +145,7 @@ class Solution:
         """
         packets = self.info["list_clients"]
         output = bfs_path(self.graph,self.isp,self.info["list_clients"])
-        
+        print(self.allpathsN(1000))
         k = self.newpaths(output)
         paths, bandwidths, priorities = k, self.info["bandwidths"] , {}
 
@@ -130,7 +154,5 @@ class Solution:
         # Note: You do not need to modify all of the above. For Problem 1, only the paths variable needs to be modified. If you do modify a variable you are not supposed to, you might notice different revenues outputted by the Driver locally since the autograder will ignore the variables not relevant for the problem.
         # WARNING: DO NOT MODIFY THE LINE BELOW, OR BAD THINGS WILL HAPPEN
         return (paths, bandwidths, priorities)
-
-
 
 
