@@ -1,4 +1,4 @@
-# CSE331:Algorithm Complexity - Network-Topology-Optimization
+# CSE331:Algorithm Complexity - Network Topology Optimization
 
 ## This project optimized the paths and ways packets of data were sent over a network topology in order to maximize profit
 
